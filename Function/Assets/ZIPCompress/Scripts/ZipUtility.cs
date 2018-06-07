@@ -43,8 +43,10 @@ public  class ZipUtility  {
 
         //声明压缩节点
         ZipEntry zipEntry = null;
+
         //读取源文件的流
         FileStream fileStream = null;
+
         ////输出到压缩的流
         //ZipOutputStream zipOutputStream = null;
         try{
@@ -114,9 +116,7 @@ public  class ZipUtility  {
 
             }
         }
-        if (zipCallBack != null)
-            zipCallBack.OnFinish(true);
-     
+
         return true;
 
     }
@@ -144,6 +144,45 @@ public  class ZipUtility  {
 
         return result;
 
+    }
+
+    //压缩多个文件
+    public bool Zip(List<string> fileNames,string outPaths,string password = null,ZipCallBack zipCallBack){
+
+
+        if (string.IsNullOrEmpty(outPaths)) return false;
+        if (fileNames.Count <= 0) return false;
+
+        ZipOutputStream zipOutput = new ZipOutputStream(File.Create(outPaths));
+        for (int i = 0; i < fileNames.Count;i++){
+
+            bool isResult = false;
+            if(Directory.Exists(fileNames[i]))
+            {
+                isResult = ZipDirectory(fileNames[i],string.Empty,null,zipCallBack,zipOutput);
+
+            }else{
+
+                isResult = ZipFile(fileNames[i],string.Empty,null,zipCallBack,zipOutput);
+            }
+
+            if(!isResult){
+
+                if(zipCallBack!=null){
+
+                    zipCallBack.OnFinish(false);
+                }
+                return false;
+
+            }
+
+        }
+
+        zipOutput.Finish();
+        zipOutput.Close();
+
+
+        return true;
     }
 
     //压缩文件夹
@@ -262,9 +301,6 @@ public  class ZipUtility  {
 
 
             }
-
-
-
         return true;
 
 

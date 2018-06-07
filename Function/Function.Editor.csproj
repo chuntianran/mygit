@@ -313,8 +313,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\MD5Hash\Data\AssetsT02.txt" />
-    <None Include="Assets\SimpleAssetBundle\OutData\DependencyXML.xml" />
-    <None Include="Assets\SimpleAssetBundle\OutData\FileDescription.txt" />
+    <None Include="Assets\SimpleAssetBundle\OutData\0.0.1\Res\DependencyXML.xml" />
+    <None Include="Assets\SimpleAssetBundle\OutData\0.0.1\Res\FileDescription.txt" />
     <None Include="Assets\XLuaFrame\XLua\CHANGELOG.txt" />
     <None Include="Assets\XLuaFrame\XLua\Examples\02_U3DScripting\LuaTestScript.lua.txt" />
     <None Include="Assets\XLuaFrame\XLua\Examples\03_UIEvent\ButtonInteraction.lua.txt" />

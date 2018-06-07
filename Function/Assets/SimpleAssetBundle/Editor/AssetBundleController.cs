@@ -8,15 +8,29 @@ using System.Text;
 using System;
 
 
+
 //测试打包
 public class AssetBundleController : EditorWindow {
 
 
+    //版本号
+    public static string version = "0.0.1";
+
     //输出目录
-    public static string OutDataPath = Application.dataPath + "/" + "SimpleAssetBundle/OutData";
+    public static string OutDataPath = Application.dataPath + "/" + "SimpleAssetBundle/OutData/"+version;
+
+    //输出的打包目录
+    public static string OutDataRes = OutDataPath + "/Res";
 
     //资源目录
     public static string ResourcePath = Application.dataPath + "/SimpleAssetBundle/" + "Resources";
+
+
+    //增量包目录
+    public static string IncrementZipOutPath = OutDataPath+ "/IncrementZip";
+
+    //全量包目录
+    public static string FullZipOutPath = OutDataPath + "/FullZip";
 
     //文件的描述
     public static string DescriptionName = "FileDescription.txt";
@@ -24,6 +38,11 @@ public class AssetBundleController : EditorWindow {
     //依赖的描述文件
     public static string DependencyXML = "DependencyXML.xml";
 
+    //增量包名称
+    public static string IncrementName = "IncreamentZip.zip";
+
+    //全量包
+    public static string FullName = "FullZip.zip";
 
     //存储每一个文件
     public static Dictionary<string, AssetBundleInfo> assetBundleFiles = new Dictionary<string, AssetBundleInfo>();
@@ -44,21 +63,37 @@ public class AssetBundleController : EditorWindow {
             SetAssetBundleName(dirPaths[i]);
         }
         AssetDatabase.Refresh();
-        BuildPipeline.BuildAssetBundles(OutDataPath,BuildAssetBundleOptions.UncompressedAssetBundle,BuildTarget.Android);
+
+        //如果不存在就创建文件夹
+        if(!Directory.Exists(OutDataRes)){
+
+            Directory.CreateDirectory(OutDataRes);
+
+        }
+
+        //打包
+        BuildPipeline.BuildAssetBundles(OutDataRes,BuildAssetBundleOptions.UncompressedAssetBundle,BuildTarget.Android);
 
         //设置文件的描述，用来检测那些文件需要更新
         SetFileDescription();
        
         //生成依赖关系
-        SetDependency(OutDataPath+"/OutData");
+        SetDependency(OutDataRes+"/Res");
 
         //生成XML文档，assetBundle对应的资源路径
         XMLFile xMLFile = GenerateDependencyXML();
 
         //写入XML文档
-        File.WriteAllBytes(OutDataPath+"/"+DependencyXML,xMLFile.GetBytes());
+        File.WriteAllBytes(OutDataRes+"/"+DependencyXML,xMLFile.GetBytes());
 
         Debug.Log("成功");
+
+    }
+
+    //检查压缩的文件
+    public void CheckZip(){
+
+
 
     }
 
@@ -138,7 +173,7 @@ public class AssetBundleController : EditorWindow {
     {
 
         StringBuilder stringBuilder = new StringBuilder();
-        string[] subFiles = Directory.GetFiles(OutDataPath);
+        string[] subFiles = Directory.GetFiles(OutDataRes);
         for (int i = 0; i < subFiles.Length;i++){
 
             string filePath = subFiles[i];
@@ -155,7 +190,7 @@ public class AssetBundleController : EditorWindow {
 
         }
 
-        File.WriteAllText(OutDataPath+"/"+DescriptionName,stringBuilder.ToString());
+        File.WriteAllText(OutDataRes+"/"+DescriptionName,stringBuilder.ToString());
 
 
     }
