@@ -1,0 +1,10 @@
+ManifestFileVersion: 0
+CRC: 1118557259
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: player
+      Dependencies: {}
+    Info_1:
+      Name: cube
+      Dependencies: {}

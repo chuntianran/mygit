@@ -6,15 +6,117 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System;
+using ICSharpCode.SharpZipLib.Zip;
+
+//全量包压缩回调
+public class ZipFullCall : ZipCallBack
+{
+    int Num = 0;
+    long AllSize = 0;
+    public override bool OnAfterZip(ZipEntry zipEntry)
+    {
+        return true;
+    }
+
+    public override void OnFinish(bool isSure)
+    {
+        if(isSure)
+        {
+            string path = AssetBundleController.FullZipOutPath + "/" + AssetBundleController.FullName;
+
+            if(!File.Exists(path))
+            {
+
+                Debug.LogError("压缩失败");
+            }else{
+
+                FileStream fileStream = File.Open(path,FileMode.Open);
+                string md5 = AssetBundleController.GetMd5Hash(fileStream);
+
+                string datas = Num + "|" + AllSize + "|" + md5;
+                string outPath = AssetBundleController.FullZipOutPath + "/" + "FullVersion.txt";
+                File.WriteAllText(outPath,datas);
+                Debug.Log("压缩成功");
+            }
+                     
+        }
+    }
+
+    public override bool OnPreZip(ZipEntry zipEntry)
+    {
+        if(zipEntry != null){
+
+            Num += 1;
+            AllSize += zipEntry.Size;
+            return true;
+        }
+        return false;
+    }
+}
+
+//增量包压缩回调
+public class ZipIncrementCall : ZipCallBack
+{
+    int Num = 0;
+    long AllSize = 0;
+    public override bool OnAfterZip(ZipEntry zipEntry)
+    {
+        return true;
+    }
+
+    public override void OnFinish(bool isSure)
+    {
+        if (isSure)
+        {
+            string path = AssetBundleController.IncrementZipOutPath + "/" + AssetBundleController.IncrementName;
+
+            if (!File.Exists(path))
+            {
+
+                Debug.LogError("压缩失败");
+            }
+            else
+            {
+
+                FileStream fileStream = File.Open(path, FileMode.Open);
+                string md5 = AssetBundleController.GetMd5Hash(fileStream);
+
+                string datas = Num + "|" + AllSize + "|" + md5;
+                string outPath = AssetBundleController.IncrementZipOutPath + "/" + "IncrementZip.txt";
+                File.WriteAllText(outPath, datas);
+                Debug.Log("压缩成功");
+            }
+
+        }
+    }
+
+    public override bool OnPreZip(ZipEntry zipEntry)
+    {
+        if (zipEntry != null)
+        {
+
+            Num += 1;
+            AllSize += zipEntry.Size;
+            return true;
+        }
+        return false;
+    }
+}
+
 
 
 
 //测试打包
 public class AssetBundleController : EditorWindow {
 
+    //旧版本号
+    public static string oldVersion = "0.0.1";
 
     //版本号
-    public static string version = "0.0.1";
+    public static string version = "0.0.2";
+
+    //旧版本输出目录
+    public static string oldDataPath = Application.dataPath + "/" + "SimpleAssetBundle/OutData/" + oldVersion;
 
     //输出目录
     public static string OutDataPath = Application.dataPath + "/" + "SimpleAssetBundle/OutData/"+version;
@@ -86,15 +188,115 @@ public class AssetBundleController : EditorWindow {
         //写入XML文档
         File.WriteAllBytes(OutDataRes+"/"+DependencyXML,xMLFile.GetBytes());
 
-        Debug.Log("成功");
+        CheckZip();
+
+        Debug.Log("打包成功");
 
     }
 
     //检查压缩的文件
-    public void CheckZip(){
+    public static void CheckZip(){
+
+        List<string> incrementzipFiles = null;
+        List<string> fullZipFiles = null;
+        Dictionary<string, string> oldDic = null;
+        string path = oldDataPath + "/Res";
+        if(Directory.Exists(path))
+        {
+
+            string filePath = path +"/"+DescriptionName;
+            if(File.Exists(filePath))
+            {
+
+                oldDic = new Dictionary<string, string>();
+                string data = File.ReadAllText(filePath);
+                string[] datas = data.Split('\n');
+                for (int i = 0; i < datas.Length;i++)
+                {
+                    if (datas[i] == string.Empty) continue;
+                    string[] line = datas[i].Split('|');
+                    string name = line[0];
+                    string md5 = line[2];
+                    oldDic.Add(name,md5);
+                }
+
+            }
+        }
 
 
 
+        if (Directory.Exists(OutDataRes))
+        {
+            incrementzipFiles = new List<string>();
+            fullZipFiles = new List<string>();
+            string filePath = OutDataRes + "/" + DescriptionName;
+            if (File.Exists(filePath))
+            {
+                string data = File.ReadAllText(filePath);
+                string[] datas = data.Split('\n');
+
+                for (int i = 0; i < datas.Length; i++)
+                {
+                    if (datas[i] == string.Empty) continue;
+                    string[] line = datas[i].Split('|');
+                    string fileName = line[0];
+                    string md5 = line[2];
+
+                    //如果有旧版本就比较md5是否相同
+                    if (oldDic != null)
+                    {
+                        if (oldDic.ContainsKey(fileName))
+                        {
+
+                            string oldMd5 = oldDic[fileName];
+                            if (!oldMd5.Equals(md5))
+                            {
+
+                                incrementzipFiles.Add(OutDataRes + "/" + fileName);
+                            }
+
+                        }
+                        else
+                        {
+
+                            incrementzipFiles.Add(OutDataRes + "/" + fileName);
+                        }
+
+
+                    }
+                    fullZipFiles.Add(OutDataRes+"/"+fileName);
+
+                }
+
+            }
+
+        }
+
+        if(incrementzipFiles!=null){
+            
+            if(oldDic != null){
+
+                if (!Directory.Exists(IncrementZipOutPath))
+                {
+                    Directory.CreateDirectory(IncrementZipOutPath);
+                }
+
+                ZipUtility.Instance.Zip(incrementzipFiles, IncrementZipOutPath + "/" + IncrementName, null, new ZipIncrementCall());
+                          
+            }
+
+            if (!Directory.Exists(FullZipOutPath))
+            {
+                Directory.CreateDirectory(FullZipOutPath);
+            }
+
+            ZipUtility.Instance.Zip(fullZipFiles, FullZipOutPath + "/" + FullName, null, new ZipFullCall());
+ 
+        }else{
+
+            Debug.LogError("压缩失败");
+
+        }
     }
 
 

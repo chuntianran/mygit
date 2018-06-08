@@ -320,6 +320,10 @@
     <None Include="Assets\MD5Hash\Data\AssetsT02.txt" />
     <None Include="Assets\SimpleAssetBundle\OutData\0.0.1\Res\DependencyXML.xml" />
     <None Include="Assets\SimpleAssetBundle\OutData\0.0.1\Res\FileDescription.txt" />
+    <None Include="Assets\SimpleAssetBundle\OutData\0.0.2\FullZip\FullVersion.txt" />
+    <None Include="Assets\SimpleAssetBundle\OutData\0.0.2\IncrementZip\IncrementZip.txt" />
+    <None Include="Assets\SimpleAssetBundle\OutData\0.0.2\Res\DependencyXML.xml" />
+    <None Include="Assets\SimpleAssetBundle\OutData\0.0.2\Res\FileDescription.txt" />
     <None Include="Assets\XLuaFrame\XLua\CHANGELOG.txt" />
     <None Include="Assets\XLuaFrame\XLua\Examples\02_U3DScripting\LuaTestScript.lua.txt" />
     <None Include="Assets\XLuaFrame\XLua\Examples\03_UIEvent\ButtonInteraction.lua.txt" />

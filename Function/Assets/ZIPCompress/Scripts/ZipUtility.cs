@@ -142,16 +142,24 @@ public  class ZipUtility  {
         zipOutputStream.Finish();
         zipOutputStream.Close();
 
+        if (zipCallBack != null)
+        {
+
+            zipCallBack.OnFinish(true);
+        }
+
         return result;
 
     }
 
     //压缩多个文件
-    public bool Zip(List<string> fileNames,string outPaths,string password = null,ZipCallBack zipCallBack){
+    public bool Zip(List<string> fileNames,string outPaths,string password = null,ZipCallBack zipCallBack = null)
+    {
 
 
         if (string.IsNullOrEmpty(outPaths)) return false;
         if (fileNames.Count <= 0) return false;
+
 
         ZipOutputStream zipOutput = new ZipOutputStream(File.Create(outPaths));
         for (int i = 0; i < fileNames.Count;i++){
@@ -181,6 +189,11 @@ public  class ZipUtility  {
         zipOutput.Finish();
         zipOutput.Close();
 
+
+        if(zipCallBack!=null){
+
+            zipCallBack.OnFinish(true);
+        }
 
         return true;
     }
